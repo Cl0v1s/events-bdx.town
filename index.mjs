@@ -65,15 +65,7 @@ async function retrieveMobilizon() {
     const nextSaturday = new Date();
     nextSaturday.setDate(today.getDate() + 6);
     const query = {
-        "operationName": "SearchEventsAndGroups",
-        "variables": {
-          "location": "ezzx5529g",
-          "radius": 100,
-          "eventPage": 1,
-          "groupPage": 1,
-          "limit": 100
-        },
-        "query": "query SearchEventsAndGroups($location: String, $radius: Float, $tags: String, $term: String, $type: EventType, $beginsOn: DateTime, $endsOn: DateTime, $eventPage: Int, $groupPage: Int, $limit: Int) {\n  searchEvents(\n    location: $location\n    radius: $radius\n    tags: $tags\n    term: $term\n    type: $type\n    beginsOn: $beginsOn\n    endsOn: $endsOn\n    page: $eventPage\n    limit: $limit\n  ) {\n    total\n    elements {\n      id\n      title\n      uuid\n      beginsOn\n      picture {\n        id\n        url\n        __typename\n      }\n      status\n      tags {\n        ...TagFragment\n        __typename\n      }\n      physicalAddress {\n        ...AdressFragment\n        __typename\n      }\n      organizerActor {\n        ...ActorFragment\n        __typename\n      }\n      attributedTo {\n        ...ActorFragment\n        __typename\n      }\n      options {\n        ...EventOptions\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  searchGroups(\n    term: $term\n    location: $location\n    radius: $radius\n    page: $groupPage\n    limit: $limit\n  ) {\n    total\n    elements {\n      ...ActorFragment\n      banner {\n        id\n        url\n        __typename\n      }\n      members(roles: \"member,moderator,administrator,creator\") {\n        total\n        __typename\n      }\n      followers(approved: true) {\n        total\n        __typename\n      }\n      physicalAddress {\n        ...AdressFragment\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment EventOptions on EventOptions {\n  maximumAttendeeCapacity\n  remainingAttendeeCapacity\n  showRemainingAttendeeCapacity\n  anonymousParticipation\n  showStartTime\n  showEndTime\n  timezone\n  offers {\n    price\n    priceCurrency\n    url\n    __typename\n  }\n  participationConditions {\n    title\n    content\n    url\n    __typename\n  }\n  attendees\n  program\n  commentModeration\n  showParticipationPrice\n  hideOrganizerWhenGroupEvent\n  isOnline\n  __typename\n}\n\nfragment TagFragment on Tag {\n  id\n  slug\n  title\n  __typename\n}\n\nfragment AdressFragment on Address {\n  id\n  description\n  geom\n  street\n  locality\n  postalCode\n  region\n  country\n  type\n  url\n  originId\n  timezone\n  __typename\n}\n\nfragment ActorFragment on Actor {\n  id\n  avatar {\n    id\n    url\n    __typename\n  }\n  type\n  preferredUsername\n  name\n  domain\n  summary\n  url\n  __typename\n}"
+        "query": "{searchEvents(location:\"ezzx5529g\",radius:100){elements{title,physicalAddress{locality},url,beginsOn}}}",
     };
 
     const request = await fetch('https://mobilizon.fr/api', {
@@ -97,7 +89,7 @@ async function retrieveMobilizon() {
                 month: "short",
                 year: "numeric",
             }),
-            link: MOBILIZON_URL + e.uuid,
+            link: e.url,
             title: e.title,
             place: e.physicalAddress?.locality,
         }));
@@ -138,7 +130,7 @@ ${events.map((e) => (
     const request = await fetch(INSTANCE + "/api/v1/statuses", {
         method: "POST",
         headers: {
-            "Authorization": `Bearer ${config.accessToken}`,
+            "Authorization": `Bearer ${await getToken()}`,
             "Content-Type": "application/json;charset=utf-8",
         },
         body: JSON.stringify({
